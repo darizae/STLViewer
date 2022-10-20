@@ -11,16 +11,20 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SubScene;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
+import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
@@ -37,9 +41,9 @@ public class Controller implements Initializable{
 	private File stlFile;
 	private STL model;
 	
-	private Group root;
-	
-	private PerspectiveCamera camera;
+//	private Group root;
+//	
+//	private PerspectiveCamera camera;
 	private Rotate xRotate = new Rotate(0, Rotate.X_AXIS);
 	private Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
 	private Rotate zRotate = new Rotate(0, Rotate.Z_AXIS);
@@ -52,34 +56,55 @@ public class Controller implements Initializable{
 	private Box zAxis;
 	Boolean axisVisible;
 	
-	private Timeline timeline;
+//	private Timeline timeline;
 	private Boolean isPlaying;
 	
 	private static final int MOV_FACTOR = 5;
 	private static final int ROT_FACTOR = 2;
 	private static final double SCALE_FACTOR = 0.1;
+	
+    final Group root = new Group();
+    final Xform world = new Xform();
+    
+    final PerspectiveCamera camera = new PerspectiveCamera(true);
+    final Xform cameraXform = new Xform();
+    final Xform cameraXform2 = new Xform();
+    final Xform cameraXform3 = new Xform();
+    final double cameraDistance = 450;
+    
+    final Group axisGroup = new Group();
+    final Xform moleculeGroup = new Xform();
+    
+    private Timeline timeline;
+    boolean timelinePlaying = false;
+    double ONE_FRAME = 1.0/24.0;
+    double DELTA_MULTIPLIER = 200.0;
+    double CONTROL_MULTIPLIER = 0.1;
+    double SHIFT_MULTIPLIER = 0.1;
+    double ALT_MULTIPLIER = 0.5;
+        
+    double mousePosX;
+    double mousePosY;
+    double mouseOldX;
+    double mouseOldY;
+    double mouseDeltaX;
+    double mouseDeltaY;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		
-		this.root = new Group();
-		
-		buildCamera();
-		set3DView();
 		buildSubScene();
-		buildAxis();
-		addAxis();
-		setAnimation();
+		buildCamera();
+		buildAxes();
 		
-		initSubSceneControls();
+		handleKeyboard(subScene, root);
+		handleMouse(subScene, root);
 	}
 	
 	private void buildSubScene() {
 		this.subScene.setRoot(root);
 		this.subScene.setCamera(camera);
-		this.subScene.setOnMousePressed(e -> {
-	          subScene.requestFocus();
-			});
+		root.getChildren().add(world);
 	}
 	
 	public void loadSTL() throws Exception {
@@ -88,129 +113,33 @@ public class Controller implements Initializable{
 				new FileChooser.ExtensionFilter("STL Files", "*.stl")
 		);
 		this.stlFile = fileChooser.showOpenDialog(anchorPane.getScene().getWindow());
+		buildSTL();
+	}
+	
+	private void buildSTL() throws Exception {
 		this.model = new STL(this.stlFile);
-		this.root.getChildren().add(this.model);
-		this.model.makeRotable();
-		initSTLControls(this.model);
+		this.world.getChildren().add(this.model);
+		this.model.decreaseSize(0.5);
+		this.model.rotateZ(180);
 	}
 	
-	public void set2DView() {
-		this.camera.getTransforms().clear();
-		this.camera.getTransforms().add(new Translate(0,0,-300));
-		is3D = false;
-	}
-	
-	public void set3DView() {
-		setCameraTransforms();
-		this.camera.getTransforms().addAll(
-                new Rotate(-20, Rotate.X_AXIS),
-                new Translate(0,0,-500)
-		);
-		this.yRotate.setAngle(-44);
-		is3D = true;
-	}
 	
 	private void buildCamera() {
-		this.animationRot = new Rotate(0, Rotate.Y_AXIS);
-		this.camera = new PerspectiveCamera(true);
-		this.camera.setNearClip(0.1);
-		this.camera.setFarClip(10000);
-		setCameraTransforms();
+		root.getChildren().add(cameraXform);
+		cameraXform.getChildren().add(cameraXform2);
+	    cameraXform2.getChildren().add(cameraXform3);
+	    cameraXform3.getChildren().add(camera);
+	    cameraXform3.setRotateZ(180.0);
+	 
+	    camera.setNearClip(0.1);
+	    camera.setFarClip(10000.0);
+	    camera.setTranslateZ(-cameraDistance);
+	    cameraXform.ry.setAngle(320.0);
+	    cameraXform.rx.setAngle(40);
 	}
 	
-	private void setCameraTransforms(){
-		this.camera.getTransforms().clear();
-		this.camera.getTransforms().addAll (
-        		pivot,
-        		animationRot,
-                yRotate,
-                xRotate,
-                zRotate
-        );
-	}
-	
-	private void initSTLControls(STL model) {
-		this.subScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent event) {
-				switch(event.getCode()) {
-				//Move Object Along Axis
-				case NUMPAD5: model.moveUp(MOV_FACTOR); break;
-				case NUMPAD2: model.moveDown(MOV_FACTOR); break;
-				case NUMPAD1: model.moveLeft(MOV_FACTOR); break;
-				case NUMPAD3: model.moveRight(MOV_FACTOR); break;
-				case NUMPAD4: model.moveForward(MOV_FACTOR);; break;
-				case NUMPAD6: model.moveBack(MOV_FACTOR); break;
-				
-				//Change Scale
-				case K: model.increaseSize(SCALE_FACTOR); break;
-				case L: model.decreaseSize(SCALE_FACTOR); break;
-				
-				//Delete STL Model
-				case DELETE: try {model.delete(root); stlFile = null;} catch (Exception e) {e.printStackTrace();} break;
-				
-				default: break;
-				}
-			}
-		});
-	}
-	
-	public void upCam() {xRotate.setAngle(xRotate.getAngle() - ROT_FACTOR);}
-	public void downCam() {xRotate.setAngle(xRotate.getAngle() + ROT_FACTOR);}
-	public void leftCam() {yRotate.setAngle(yRotate.getAngle() + ROT_FACTOR);}
-	public void rightCam() {yRotate.setAngle(yRotate.getAngle() - ROT_FACTOR);}
-	public void forwardCam() {zRotate.setAngle(zRotate.getAngle() - ROT_FACTOR);}
-	public void backCam() {zRotate.setAngle(zRotate.getAngle() + ROT_FACTOR);}
-	public void centerCam() {
-		if (is3D) {
-			set3DView();
-		} else {
-			set2DView();
-		}
-	}
-	
-	private void initSubSceneControls() {
-		this.subScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
-			switch(event.getCode()) {
-			case W: upCam(); break;
-			case S: downCam(); break;
-			case A: leftCam(); break;
-			case D: rightCam(); break;
-			case Q: forwardCam(); break;
-			case E: backCam(); break;
-			
-			case N: if (axisVisible) {removeAxis();} else{addAxis();} break;
-			
-			case SPACE: controlAnimation(); break;
-			
-			default: break;
-			}
-		});
-		
-		this.subScene.setOnScroll(new EventHandler<ScrollEvent>() {
-			@Override
-			public void handle(ScrollEvent event) {
-				event.consume();
-				double delta = event.getDeltaY();
-				if (delta == 0) {
-					return;
-				} else {
-					camera.getTransforms().add(new Translate(0,0,delta)); 
-				}
-			}
-		});
-	}
-	
-	/*
-	 * Function name: buildAxis
-	 * 
-	 * Inside the Function:
-	 * 1. Sets colors for axis (x->red, y->green, z->blue)
-	 * 2. Creates new boxes, that are to serve as axis, with corresponding dimensions
-	 * 
-	 */
-	private void buildAxis() {
 
+    private void buildAxes() {
         final PhongMaterial redMaterial = new PhongMaterial();
         redMaterial.setDiffuseColor(Color.DARKRED);
         redMaterial.setSpecularColor(Color.RED);
@@ -222,16 +151,42 @@ public class Controller implements Initializable{
         final PhongMaterial blueMaterial = new PhongMaterial();
         blueMaterial.setDiffuseColor(Color.DARKBLUE);
         blueMaterial.setSpecularColor(Color.BLUE);
-        
-        xAxis = new Box(700, 1, 1);
-        yAxis = new Box(1, 700, 1);
-        zAxis = new Box(1, 1, 700);
+ 
+        final Box xAxis = new Box(700, 1, 1);
+        final Box yAxis = new Box(1, 700, 1);
+        final Box zAxis = new Box(1, 1, 700);
         
         xAxis.setMaterial(redMaterial);
         yAxis.setMaterial(greenMaterial);
         zAxis.setMaterial(blueMaterial);
-		
-	}
+ 
+        axisGroup.getChildren().addAll(xAxis, yAxis, zAxis);
+        world.getChildren().addAll(axisGroup);
+    }
+	
+//	private void buildAxis() {
+//
+//        final PhongMaterial redMaterial = new PhongMaterial();
+//        redMaterial.setDiffuseColor(Color.DARKRED);
+//        redMaterial.setSpecularColor(Color.RED);
+// 
+//        final PhongMaterial greenMaterial = new PhongMaterial();
+//        greenMaterial.setDiffuseColor(Color.DARKGREEN);
+//        greenMaterial.setSpecularColor(Color.GREEN);
+// 
+//        final PhongMaterial blueMaterial = new PhongMaterial();
+//        blueMaterial.setDiffuseColor(Color.DARKBLUE);
+//        blueMaterial.setSpecularColor(Color.BLUE);
+//        
+//        xAxis = new Box(700, 1, 1);
+//        yAxis = new Box(1, 700, 1);
+//        zAxis = new Box(1, 1, 700);
+//        
+//        xAxis.setMaterial(redMaterial);
+//        yAxis.setMaterial(greenMaterial);
+//        zAxis.setMaterial(blueMaterial);
+//		
+//	}
 	
 	/*
 	 * Function name: addAxis
@@ -281,5 +236,169 @@ public class Controller implements Initializable{
 			isPlaying = true;
 		}
 	}
+	
+	private void handleMouse(SubScene subScene, final Node root) {
+		subScene.setOnMousePressed(new EventHandler<MouseEvent>() {
+	           @Override public void handle(MouseEvent me) {
+	               mousePosX = me.getSceneX();
+	               mousePosY = me.getSceneY();
+	               mouseOldX = me.getSceneX();
+	               mouseOldY = me.getSceneY();
+	   			   subScene.requestFocus();
+	           }
+	       });
+	       subScene.setOnMouseDragged(new EventHandler<MouseEvent>() {
+	           @Override public void handle(MouseEvent me) {
+	               mouseOldX = mousePosX;
+	               mouseOldY = mousePosY;
+	               mousePosX = me.getSceneX();
+	               mousePosY = me.getSceneY();
+	               mouseDeltaX = (mousePosX - mouseOldX); 
+	               mouseDeltaY = (mousePosY - mouseOldY); 
+	               
+	               double modifier = 1.0;
+	               double modifierFactor = 0.1;
+	               
+	               if (me.isControlDown()) {
+	                   modifier = 0.1;
+	               } 
+	               if (me.isShiftDown()) {
+	                   modifier = 10.0;
+	               }     
+	               if (me.isPrimaryButtonDown()) {
+	                   cameraXform.ry.setAngle(cameraXform.ry.getAngle() - mouseDeltaX*modifierFactor*modifier*2.0);  // +
+	                   cameraXform.rx.setAngle(cameraXform.rx.getAngle() + mouseDeltaY*modifierFactor*modifier*2.0);  // -
+	               }
+
+	               else if (me.isMiddleButtonDown()) {
+	                   cameraXform2.t.setX(cameraXform2.t.getX() + mouseDeltaX*modifierFactor*modifier*0.3);  // -
+	                   cameraXform2.t.setY(cameraXform2.t.getY() + mouseDeltaY*modifierFactor*modifier*0.3);  // -
+	               }
+	           }
+	       });
+	       
+	        subScene.setOnScroll(new EventHandler<ScrollEvent>() {
+				@Override
+				public void handle(ScrollEvent event) {
+					double delta = event.getDeltaY();
+					double z = camera.getTranslateZ();
+					if (delta == 0) {
+						return;
+					} else {
+						double newZ = z + delta;
+						camera.setTranslateZ(newZ);
+					}
+				}
+			});
+	   }
+	   
+	   private void handleKeyboard(SubScene subScene, final Node root) {
+	       final boolean moveCamera = true;
+	       subScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+	           @Override
+	           public void handle(KeyEvent event) {
+	               Duration currentTime;
+	               switch (event.getCode()) {
+	                   case Z:
+	                       if (event.isShiftDown()) {
+	                           cameraXform.ry.setAngle(0.0);
+	                           cameraXform.rx.setAngle(0.0);
+	                           camera.setTranslateZ(-300.0);
+	                       }   
+	                       cameraXform2.t.setX(0.0);
+	                       cameraXform2.t.setY(0.0);
+	                       break;
+	                   case X:
+	                       if (event.isControlDown()) {
+	                           if (axisGroup.isVisible()) {
+	                               System.out.println("setVisible(false)");
+	                               axisGroup.setVisible(false);
+	                           }
+	                           else {
+	                               System.out.println("setVisible(true)");
+	                               axisGroup.setVisible(true);
+	                           }
+	                       }   
+	                       break;
+	                   case SPACE:
+	                       if (timelinePlaying) {
+	                           timeline.pause();
+	                           timelinePlaying = false;
+	                       }
+	                       else {
+	                           timeline.play();
+	                           timelinePlaying = true;
+	                       }
+	                       break;
+	                   case UP:
+	                       if (event.isControlDown() && event.isShiftDown()) {
+	                           cameraXform2.t.setY(cameraXform2.t.getY() - 10.0*CONTROL_MULTIPLIER);  
+	                       }  
+	                       else if (event.isAltDown() && event.isShiftDown()) {
+	                           cameraXform.rx.setAngle(cameraXform.rx.getAngle() - 10.0*ALT_MULTIPLIER);  
+	                       }
+	                       else if (event.isControlDown()) {
+	                           cameraXform2.t.setY(cameraXform2.t.getY() - 1.0*CONTROL_MULTIPLIER);  
+	                       }
+	                       else if (event.isAltDown()) {
+	                           cameraXform.rx.setAngle(cameraXform.rx.getAngle() - 2.0*ALT_MULTIPLIER);  
+	                       }
+	                       else if (event.isShiftDown()) {
+	                           double z = camera.getTranslateZ();
+	                           double newZ = z + 5.0*SHIFT_MULTIPLIER;
+	                           camera.setTranslateZ(newZ);
+	                       }
+	                       break;
+	                   case DOWN:
+	                       if (event.isControlDown() && event.isShiftDown()) {
+	                           cameraXform2.t.setY(cameraXform2.t.getY() + 10.0*CONTROL_MULTIPLIER);  
+	                       }  
+	                       else if (event.isAltDown() && event.isShiftDown()) {
+	                           cameraXform.rx.setAngle(cameraXform.rx.getAngle() + 10.0*ALT_MULTIPLIER);  
+	                       }
+	                       else if (event.isControlDown()) {
+	                           cameraXform2.t.setY(cameraXform2.t.getY() + 1.0*CONTROL_MULTIPLIER);  
+	                       }
+	                       else if (event.isAltDown()) {
+	                           cameraXform.rx.setAngle(cameraXform.rx.getAngle() + 2.0*ALT_MULTIPLIER);  
+	                       }
+	                       else if (event.isShiftDown()) {
+	                           double z = camera.getTranslateZ();
+	                           double newZ = z - 5.0*SHIFT_MULTIPLIER;
+	                           camera.setTranslateZ(newZ);
+	                       }
+	                       break;
+	                   case RIGHT:
+	                       if (event.isControlDown() && event.isShiftDown()) {
+	                           cameraXform2.t.setX(cameraXform2.t.getX() + 10.0*CONTROL_MULTIPLIER);  
+	                       }  
+	                       else if (event.isAltDown() && event.isShiftDown()) {
+	                           cameraXform.ry.setAngle(cameraXform.ry.getAngle() - 10.0*ALT_MULTIPLIER);  
+	                       }
+	                       else if (event.isControlDown()) {
+	                           cameraXform2.t.setX(cameraXform2.t.getX() + 1.0*CONTROL_MULTIPLIER);  
+	                       }
+	                       else if (event.isAltDown()) {
+	                           cameraXform.ry.setAngle(cameraXform.ry.getAngle() - 2.0*ALT_MULTIPLIER);  
+	                       }
+	                       break;
+	                   case LEFT:
+	                       if (event.isControlDown() && event.isShiftDown()) {
+	                           cameraXform2.t.setX(cameraXform2.t.getX() - 10.0*CONTROL_MULTIPLIER);  
+	                       }  
+	                       else if (event.isAltDown() && event.isShiftDown()) {
+	                           cameraXform.ry.setAngle(cameraXform.ry.getAngle() + 10.0*ALT_MULTIPLIER);  // -
+	                       }
+	                       else if (event.isControlDown()) {
+	                           cameraXform2.t.setX(cameraXform2.t.getX() - 1.0*CONTROL_MULTIPLIER);  
+	                       }
+	                       else if (event.isAltDown()) {
+	                           cameraXform.ry.setAngle(cameraXform.ry.getAngle() + 2.0*ALT_MULTIPLIER);  // -
+	                       }
+	                       break;
+	               }
+	           }
+	       });
+	   }
 	
 }

@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.SubScene?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.RadioMenuItem?>
-<?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="749.0" prefWidth="1097.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.Controller">
    <children>
-      <SubScene fx:id="subScene" depthBuffer="true" fill="BLACK" height="733.0" layoutX="-5.0" layoutY="26.0" width="762.0">
+      <SubScene fx:id="subScene" depthBuffer="true" fill="BLACK" height="733.0" layoutX="-5.0" layoutY="26.0" width="1106.0">
         <root>
           <Region />
         </root>
@@ -26,15 +21,7 @@
               <MenuItem fx:id="openMI" mnemonicParsing="false" onAction="#loadSTL" text="Open" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="View">
-               <items>
-                  <RadioMenuItem mnemonicParsing="false" onAction="#set2DView" text="2D View">
-                     <toggleGroup>
-                        <ToggleGroup fx:id="viewModes" />
-                     </toggleGroup></RadioMenuItem>
-                  <RadioMenuItem mnemonicParsing="false" onAction="#set3DView" selected="true" text="3D View" toggleGroup="$viewModes" />
-               </items>
-          </Menu>
+          <Menu mnemonicParsing="false" text="View" />
           <Menu mnemonicParsing="false" text="Help">
             <items>
               <MenuItem mnemonicParsing="false" text="About" />
@@ -42,33 +29,5 @@
           </Menu>
         </menus>
       </MenuBar>
-      <Button layoutX="904.0" layoutY="123.0" mnemonicParsing="false" onAction="#upCam" prefHeight="40.0" prefWidth="61.0" text="Y▲" />
-      <Button layoutX="904.0" layoutY="203.0" mnemonicParsing="false" onAction="#downCam" prefHeight="40.0" prefWidth="61.0" text="Y▼" />
-      <Button layoutX="965.0" layoutY="163.0" mnemonicParsing="false" onAction="#rightCam" prefHeight="40.0" prefWidth="46.0" text="X▶">
-         <font>
-            <Font size="17.0" />
-         </font>
-      </Button>
-      <Button layoutX="904.0" layoutY="163.0" mnemonicParsing="false" onAction="#centerCam" prefHeight="40.0" prefWidth="61.0" text="CENTER" />
-      <Button layoutX="858.0" layoutY="163.0" mnemonicParsing="false" onAction="#leftCam" prefHeight="40.0" prefWidth="46.0" text="◀X">
-         <font>
-            <Font size="17.0" />
-         </font>
-      </Button>
-      <Button layoutX="858.0" layoutY="123.0" mnemonicParsing="false" onAction="#backCam" prefHeight="40.0" prefWidth="46.0" text="◤Z">
-         <font>
-            <Font size="17.0" />
-         </font>
-      </Button>
-      <Button layoutX="965.0" layoutY="203.0" mnemonicParsing="false" onAction="#forwardCam" prefHeight="40.0" prefWidth="46.0" text="Z◢">
-         <font>
-            <Font size="17.0" />
-         </font>
-      </Button>
-      <Label alignment="CENTER" layoutX="863.0" layoutY="90.0" prefHeight="17.0" prefWidth="137.0" text="Camera Controls" textFill="WHITE">
-         <font>
-            <Font size="16.0" />
-         </font>
-      </Label>
    </children>
 </AnchorPane>
