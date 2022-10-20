@@ -14,8 +14,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.SubScene;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -23,8 +21,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
@@ -41,23 +37,7 @@ public class Controller implements Initializable{
 	private File stlFile;
 	private STL model;
 	
-//	private Group root;
-//	
-//	private PerspectiveCamera camera;
-	private Rotate xRotate = new Rotate(0, Rotate.X_AXIS);
-	private Rotate yRotate = new Rotate(0, Rotate.Y_AXIS);
-	private Rotate zRotate = new Rotate(0, Rotate.Z_AXIS);
-	private Translate pivot = new Translate();
-	private Rotate animationRot;
-	private Boolean is3D;
 	
-	private Box xAxis;
-	private Box yAxis;
-	private Box zAxis;
-	Boolean axisVisible;
-	
-//	private Timeline timeline;
-	private Boolean isPlaying;
 	
 	private static final int MOV_FACTOR = 5;
 	private static final int ROT_FACTOR = 2;
@@ -73,7 +53,6 @@ public class Controller implements Initializable{
     final double cameraDistance = 450;
     
     final Group axisGroup = new Group();
-    final Xform moleculeGroup = new Xform();
     
     private Timeline timeline;
     boolean timelinePlaying = false;
@@ -107,20 +86,25 @@ public class Controller implements Initializable{
 		root.getChildren().add(world);
 	}
 	
+    final Xform stlGroup = new Xform();
+	
 	public void loadSTL() throws Exception {
 		this.fileChooser = new FileChooser();
 		this.fileChooser.getExtensionFilters().addAll(
 				new FileChooser.ExtensionFilter("STL Files", "*.stl")
 		);
 		this.stlFile = fileChooser.showOpenDialog(anchorPane.getScene().getWindow());
-		buildSTL();
+		if (this.stlFile != null) {
+			buildSTL();
+		}
 	}
 	
 	private void buildSTL() throws Exception {
 		this.model = new STL(this.stlFile);
-		this.world.getChildren().add(this.model);
-		this.model.decreaseSize(0.5);
-		this.model.rotateZ(180);
+		this.stlGroup.getChildren().add(this.model);
+		this.world.getChildren().add(stlGroup);
+		this.stlGroup.setScale(0.5);
+		this.stlGroup.setRotateZ(180);
 	}
 	
 	
@@ -164,78 +148,30 @@ public class Controller implements Initializable{
         world.getChildren().addAll(axisGroup);
     }
 	
-//	private void buildAxis() {
-//
-//        final PhongMaterial redMaterial = new PhongMaterial();
-//        redMaterial.setDiffuseColor(Color.DARKRED);
-//        redMaterial.setSpecularColor(Color.RED);
-// 
-//        final PhongMaterial greenMaterial = new PhongMaterial();
-//        greenMaterial.setDiffuseColor(Color.DARKGREEN);
-//        greenMaterial.setSpecularColor(Color.GREEN);
-// 
-//        final PhongMaterial blueMaterial = new PhongMaterial();
-//        blueMaterial.setDiffuseColor(Color.DARKBLUE);
-//        blueMaterial.setSpecularColor(Color.BLUE);
-//        
-//        xAxis = new Box(700, 1, 1);
-//        yAxis = new Box(1, 700, 1);
-//        zAxis = new Box(1, 1, 700);
-//        
-//        xAxis.setMaterial(redMaterial);
-//        yAxis.setMaterial(greenMaterial);
-//        zAxis.setMaterial(blueMaterial);
-//		
+//	/*
+//	 * Function name: setAnimation
+//	 * 
+//	 * Inside the Function:
+//	 * 1. Creates orbiting animation of camera around displayed objects (3D visualization)
+//	 */
+//	private void buildAnimation() {
+//		timeline = new Timeline();
+//		timeline.getKeyFrames().addAll(
+//				new KeyFrame(Duration.seconds(0), new KeyValue(animationRot.angleProperty(), animationRot.getAngle())),
+//				new KeyFrame(Duration.seconds(30), new KeyValue(animationRot.angleProperty(), animationRot.getAngle()+360))
+//		);
+//        timeline.setCycleCount(Timeline.INDEFINITE);
+//        isPlaying = false;
 //	}
-	
-	/*
-	 * Function name: addAxis
-	 * 
-	 * Inside the Function:
-	 * 1. Makes axis visible
-	 */
-	private void addAxis() {
-		this.root.getChildren().addAll(xAxis, yAxis, zAxis);
-		axisVisible = true;
-	}
-	
-	/*
-	 * Function name: removeAxis
-	 * 
-	 * Inside the Function:
-	 * 1. Makes axis invisible
-	 */
-	private void removeAxis() {
-		this.root.getChildren().remove(xAxis);
-		this.root.getChildren().remove(yAxis);
-		this.root.getChildren().remove(zAxis);
-		axisVisible = false;
-	}
-	
-	/*
-	 * Function name: setAnimation
-	 * 
-	 * Inside the Function:
-	 * 1. Creates orbiting animation of camera around displayed objects (3D visualization)
-	 */
-	private void setAnimation() {
-		timeline = new Timeline();
-		timeline.getKeyFrames().addAll(
-				new KeyFrame(Duration.seconds(0), new KeyValue(animationRot.angleProperty(), animationRot.getAngle())),
-				new KeyFrame(Duration.seconds(30), new KeyValue(animationRot.angleProperty(), animationRot.getAngle()+360))
-		);
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        isPlaying = false;
-	}
-	
-	private void controlAnimation() {
-		if (isPlaying) {
-			timeline.pause(); isPlaying = false;
-		} else {
-			timeline.play(); 
-			isPlaying = true;
-		}
-	}
+//	
+//	private void controlAnimation() {
+//		if (isPlaying) {
+//			timeline.pause(); isPlaying = false;
+//		} else {
+//			timeline.play(); 
+//			isPlaying = true;
+//		}
+//	}
 	
 	private void handleMouse(SubScene subScene, final Node root) {
 		subScene.setOnMousePressed(new EventHandler<MouseEvent>() {
@@ -320,16 +256,16 @@ public class Controller implements Initializable{
 	                           }
 	                       }   
 	                       break;
-	                   case SPACE:
-	                       if (timelinePlaying) {
-	                           timeline.pause();
-	                           timelinePlaying = false;
-	                       }
-	                       else {
-	                           timeline.play();
-	                           timelinePlaying = true;
-	                       }
-	                       break;
+//	                   case SPACE:
+//	                       if (timelinePlaying) {
+//	                           timeline.pause();
+//	                           timelinePlaying = false;
+//	                       }
+//	                       else {
+//	                           timeline.play();
+//	                           timelinePlaying = true;
+//	                       }
+//	                       break;
 	                   case UP:
 	                       if (event.isControlDown() && event.isShiftDown()) {
 	                           cameraXform2.t.setY(cameraXform2.t.getY() - 10.0*CONTROL_MULTIPLIER);  
@@ -396,6 +332,15 @@ public class Controller implements Initializable{
 	                           cameraXform.ry.setAngle(cameraXform.ry.getAngle() + 2.0*ALT_MULTIPLIER);  // -
 	                       }
 	                       break;
+	                   
+	                   case W: stlGroup.rx.setAngle(stlGroup.rx.getAngle() + ROT_FACTOR); break;
+	                   case S: stlGroup.rx.setAngle(stlGroup.rx.getAngle() - ROT_FACTOR); break;
+	                   case A: stlGroup.ry.setAngle(stlGroup.ry.getAngle() + ROT_FACTOR); break;
+	                   case D: stlGroup.ry.setAngle(stlGroup.ry.getAngle() - ROT_FACTOR); break;
+	                   case Q: stlGroup.rz.setAngle(stlGroup.rz.getAngle() + ROT_FACTOR); break;
+	                   case E: stlGroup.rz.setAngle(stlGroup.rz.getAngle() - ROT_FACTOR); break;
+	                   
+	                   default: break;
 	               }
 	           }
 	       });

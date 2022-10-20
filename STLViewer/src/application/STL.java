@@ -39,67 +39,18 @@ public class STL extends MeshView{
 	
 	public STL(File stlFile) throws Exception {
         super(loadSTL(stlFile));
-        
-		this.t = new Translate();
-		this.rx = new Rotate(); this.rx.setAxis(Rotate.X_AXIS);
-		this.ry = new Rotate(); this.ry.setAxis(Rotate.Y_AXIS);
-		this.rz = new Rotate(); this.rz.setAxis(Rotate.Z_AXIS);
-		this.s = new Scale();
-		
-		this.getTransforms().addAll(
-				t, rx, ry, rz, s
-		);
 	}
 	
 
 	private static TriangleMesh loadSTL(File stlFile) throws Exception{
+		if (stlFile == null) {
+			throw new IllegalArgumentException("No .stl file loaded");
+		}	
 		StlMeshImporter stlImporter = new StlMeshImporter();
 		stlImporter.read(stlFile);
 		TriangleMesh triangleMesh = stlImporter.getImport();
 		stlImporter.close();
 		return triangleMesh;
-	}
-	
-	/*
-	 * Movement-related methods
-	 * 1. Move Up/Down => Translation along Y-Axis
-	 * 2. Move Left/Right => Translation along X-Axis
-	 * 3. Move Forward/Back => Translation along Z-Axis
-	 */
-	public void moveUp(double movFactor) {this.t.setY(this.t.getY() - movFactor);}
-	public void moveDown(double movFactor) {this.t.setY(this.t.getY() + movFactor);}
-	
-	public void moveLeft(double movFactor) {this.t.setX(this.t.getX() - movFactor);}
-	public void moveRight(double movFactor) {this.t.setX(this.t.getX() + movFactor);}
-	
-	public void moveForward(double movFactor) {this.t.setZ(this.t.getZ() + movFactor);}
-	public void moveBack(double movFactor) {this.t.setZ(this.t.getZ() - movFactor);}
-	
-	/*
-	 * Rotation-related methods
-	 * 1. 3D Rotation along X-Axis
-	 * 2. 3D Rotation along Y-Axis
-	 * 3. 3D Rotation along Z-Axis
-	 */
-	public void rotateX(double angle) {this.rx.setAngle(this.rx.getAngle() + angle);}
-	public void rotateY(double angle) {this.ry.setAngle(this.ry.getAngle() + angle);}
-	public void rotateZ(double angle) {this.rz.setAngle(this.rz.getAngle() + angle);}
-	
-	/*
-	 * Scale-related methods
-	 * 1. Increases overall size of DNC Structure
-	 * 2. Decreases overall size of DNC Structure
-	 */
-	public void increaseSize(double scaleFactor) {
-		this.s.setX(this.s.getX() + scaleFactor);
-		this.s.setY(this.s.getY() + scaleFactor);
-		this.s.setZ(this.s.getZ() + scaleFactor);
-	}
-	
-	public void decreaseSize(double scaleFactor) {
-		this.s.setX(this.s.getX() - scaleFactor);
-		this.s.setY(this.s.getY() - scaleFactor);
-		this.s.setZ(this.s.getZ() - scaleFactor);
 	}
 	
 	public void makeRotable() {
