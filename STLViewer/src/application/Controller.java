@@ -4,8 +4,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -21,10 +19,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Box;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Translate;
 import javafx.stage.FileChooser;
-import javafx.util.Duration;
 
 public class Controller implements Initializable{
 	
@@ -148,31 +143,6 @@ public class Controller implements Initializable{
         world.getChildren().addAll(axisGroup);
     }
 	
-//	/*
-//	 * Function name: setAnimation
-//	 * 
-//	 * Inside the Function:
-//	 * 1. Creates orbiting animation of camera around displayed objects (3D visualization)
-//	 */
-//	private void buildAnimation() {
-//		timeline = new Timeline();
-//		timeline.getKeyFrames().addAll(
-//				new KeyFrame(Duration.seconds(0), new KeyValue(animationRot.angleProperty(), animationRot.getAngle())),
-//				new KeyFrame(Duration.seconds(30), new KeyValue(animationRot.angleProperty(), animationRot.getAngle()+360))
-//		);
-//        timeline.setCycleCount(Timeline.INDEFINITE);
-//        isPlaying = false;
-//	}
-//	
-//	private void controlAnimation() {
-//		if (isPlaying) {
-//			timeline.pause(); isPlaying = false;
-//		} else {
-//			timeline.play(); 
-//			isPlaying = true;
-//		}
-//	}
-	
 	private void handleMouse(SubScene subScene, final Node root) {
 		subScene.setOnMousePressed(new EventHandler<MouseEvent>() {
 	           @Override public void handle(MouseEvent me) {
@@ -229,11 +199,9 @@ public class Controller implements Initializable{
 	   }
 	   
 	   private void handleKeyboard(SubScene subScene, final Node root) {
-	       final boolean moveCamera = true;
 	       subScene.setOnKeyPressed(new EventHandler<KeyEvent>() {
 	           @Override
 	           public void handle(KeyEvent event) {
-	               Duration currentTime;
 	               switch (event.getCode()) {
 	                   case Z:
 	                       if (event.isShiftDown()) {
@@ -247,25 +215,14 @@ public class Controller implements Initializable{
 	                   case X:
 	                       if (event.isControlDown()) {
 	                           if (axisGroup.isVisible()) {
-	                               System.out.println("setVisible(false)");
 	                               axisGroup.setVisible(false);
 	                           }
 	                           else {
-	                               System.out.println("setVisible(true)");
 	                               axisGroup.setVisible(true);
 	                           }
 	                       }   
 	                       break;
-//	                   case SPACE:
-//	                       if (timelinePlaying) {
-//	                           timeline.pause();
-//	                           timelinePlaying = false;
-//	                       }
-//	                       else {
-//	                           timeline.play();
-//	                           timelinePlaying = true;
-//	                       }
-//	                       break;
+
 	                   case UP:
 	                       if (event.isControlDown() && event.isShiftDown()) {
 	                           cameraXform2.t.setY(cameraXform2.t.getY() - 10.0*CONTROL_MULTIPLIER);  

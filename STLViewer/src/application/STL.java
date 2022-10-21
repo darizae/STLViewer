@@ -6,17 +6,11 @@ import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.geometry.Point3D;
 import javafx.scene.Group;
-import javafx.scene.PerspectiveCamera;
-import javafx.scene.Scene;
-import javafx.scene.SubScene;
-import javafx.scene.input.PickResult;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.TriangleMesh;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
-import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
 
 public class STL extends MeshView{
@@ -78,14 +72,6 @@ public class STL extends MeshView{
 		});
 	}
 	
-	/*
-	 * Function Name: delete
-	 * 
-	 * @param group (Group)
-	 * 
-	 * Inside the Function:
-	 * 1. Removes 3D STL Model from root
-	 */
 	public void delete(Group root) throws Exception {
 		root.getChildren().remove(this);
 	}
